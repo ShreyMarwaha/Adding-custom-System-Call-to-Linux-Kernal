@@ -1,0 +1,28 @@
+Common subdirectories: linux-5.9.2/arch and linux-5.9.2ori/arch
+Common subdirectories: linux-5.9.2/block and linux-5.9.2ori/block
+Common subdirectories: linux-5.9.2/certs and linux-5.9.2ori/certs
+Common subdirectories: linux-5.9.2/crypto and linux-5.9.2ori/crypto
+Common subdirectories: linux-5.9.2/Documentation and linux-5.9.2ori/Documentation
+Common subdirectories: linux-5.9.2/drivers and linux-5.9.2ori/drivers
+Common subdirectories: linux-5.9.2/fs and linux-5.9.2ori/fs
+Common subdirectories: linux-5.9.2/include and linux-5.9.2ori/include
+Common subdirectories: linux-5.9.2/init and linux-5.9.2ori/init
+Common subdirectories: linux-5.9.2/ipc and linux-5.9.2ori/ipc
+Common subdirectories: linux-5.9.2/kernel and linux-5.9.2ori/kernel
+Common subdirectories: linux-5.9.2/lib and linux-5.9.2ori/lib
+Common subdirectories: linux-5.9.2/LICENSES and linux-5.9.2ori/LICENSES
+diff linux-5.9.2/Makefile linux-5.9.2ori/Makefile
+1097c1097
+< core-y		+= kernel/ certs/ mm/ fs/ ipc/ security/ crypto/ block/ sh_task_info/
+---
+> core-y		+= kernel/ certs/ mm/ fs/ ipc/ security/ crypto/ block/
+Common subdirectories: linux-5.9.2/mm and linux-5.9.2ori/mm
+Common subdirectories: linux-5.9.2/net and linux-5.9.2ori/net
+Common subdirectories: linux-5.9.2/samples and linux-5.9.2ori/samples
+Common subdirectories: linux-5.9.2/scripts and linux-5.9.2ori/scripts
+Common subdirectories: linux-5.9.2/security and linux-5.9.2ori/security
+Only in linux-5.9.2: sh_task_info
+Common subdirectories: linux-5.9.2/sound and linux-5.9.2ori/sound
+Common subdirectories: linux-5.9.2/tools and linux-5.9.2ori/tools
+Common subdirectories: linux-5.9.2/usr and linux-5.9.2ori/usr
+Common subdirectories: linux-5.9.2/virt and linux-5.9.2ori/virt

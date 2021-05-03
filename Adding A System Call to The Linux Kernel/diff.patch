@@ -1,0 +1,99 @@
+diff -Naur linux-5.9.2/arch/x86/entry/syscalls/syscall_64.tbl linux-5.9.2a2/arch/x86/entry/syscalls/syscall_64.tbl
+--- linux-5.9.2/arch/x86/entry/syscalls/syscall_64.tbl	2020-10-29 14:42:22.000000000 +0530
++++ linux-5.9.2a2/arch/x86/entry/syscalls/syscall_64.tbl	2020-11-06 20:34:56.370601490 +0530
+@@ -361,6 +361,7 @@
+ 437	common	openat2			sys_openat2
+ 438	common	pidfd_getfd		sys_pidfd_getfd
+ 439	common	faccessat2		sys_faccessat2
++440	common	sh_task_info		sys_sh_task_info
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+diff -Naur linux-5.9.2/include/linux/syscalls.h linux-5.9.2a2/include/linux/syscalls.h
+--- linux-5.9.2/include/linux/syscalls.h	2020-10-29 14:42:22.000000000 +0530
++++ linux-5.9.2a2/include/linux/syscalls.h	2020-11-06 20:34:18.074659885 +0530
+@@ -1345,4 +1345,5 @@
+ 		int __user *optlen);
+ int __sys_setsockopt(int fd, int level, int optname, char __user *optval,
+ 		int optlen);
++asmlinkage long sys_sh_task_info(int pid, char* filename);
+ #endif
+diff -Naur linux-5.9.2/Makefile linux-5.9.2a2/Makefile
+--- linux-5.9.2/Makefile	2020-10-29 14:42:22.000000000 +0530
++++ linux-5.9.2a2/Makefile	2020-11-06 20:32:56.002549864 +0530
+@@ -1094,7 +1094,7 @@
+ export MODULES_NSDEPS := $(extmod-prefix)modules.nsdeps
+ 
+ ifeq ($(KBUILD_EXTMOD),)
+-core-y		+= kernel/ certs/ mm/ fs/ ipc/ security/ crypto/ block/
++core-y		+= kernel/ certs/ mm/ fs/ ipc/ security/ crypto/ block/ sh_task_info/
+ 
+ vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, \
+ 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
+diff -Naur linux-5.9.2/sh_task_info/Makefile linux-5.9.2a2/sh_task_info/Makefile
+--- linux-5.9.2/sh_task_info/Makefile	1970-01-01 05:30:00.000000000 +0530
++++ linux-5.9.2a2/sh_task_info/Makefile	2020-11-06 20:31:46.294038489 +0530
+@@ -0,0 +1 @@
++obj-y := sh_task_info.o
+diff -Naur linux-5.9.2/sh_task_info/sh_task_info.c linux-5.9.2a2/sh_task_info/sh_task_info.c
+--- linux-5.9.2/sh_task_info/sh_task_info.c	1970-01-01 05:30:00.000000000 +0530
++++ linux-5.9.2a2/sh_task_info/sh_task_info.c	2020-11-06 20:30:42.400981081 +0530
+@@ -0,0 +1,58 @@
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/sched.h>
++#include <linux/syscalls.h>
++#include <linux/file.h> 
++#include <linux/fs.h>
++#include <linux/fcntl.h> 
++#include <asm/uaccess.h> 
++#include <uapi/asm-generic/errno-base.h>
++
++
++SYSCALL_DEFINE2(sh_task_info,int,pid,char*,filename) 
++{
++	struct task_struct *task; 
++	struct file *file;
++	loff_t pos;
++	char buf[256];
++	long copied;
++	char data[1024];
++  	int flag;
++	
++	if (pid >= 32768 || pid <= 0)
++		return -EINVAL;
++	
++	pos = 0;
++  	copied = strncpy_from_user(buf, filename, sizeof(buf));
++  	
++  	if (copied < 0 || copied == sizeof(buf))
++    		return -EFAULT;
++    	
++	file = filp_open(buf, O_WRONLY|O_CREAT, 0644);
++
++	
++	flag = 0;
++	for_each_process(task)
++	{
++		if ((int)task->pid == pid)
++		{
++			flag = 1;
++			
++			printk("\nPROCESS: %s\nPID_NUMBER: %ld\nPROCESS STATE: %ld\nPRIORITY: %ld\nRT_PRIORITY: %ld\nSTATIC PRIORITY: %ld\nNORMAL PRIORITY: %ld\n", task->comm, (long)task_pid_nr(task), (long)task->state, (long)task->prio, (long)task->rt_priority, (long)task->static_prio, (long)task->normal_prio);
++
++
++			sprintf(data, "\nProcess: %s\nPID_NUMBER: %ld\nPROCESS STATE: %ld\nPRIORITY: %ld\nRT_PRIORITY: %ld\nSTATIC PRIORITY: %ld\nNORMAL PRIORIY: %ld\n", task->comm, (long)task_pid_nr(task), (long)task->state, (long)task->prio, (long)task->rt_priority, (long)task->static_prio, (long)task->normal_prio);
++			
++			
++			kernel_write(file, data, strlen(data), &pos);
++		}
++		
++	}
++	
++	if (flag==0)
++	{
++		return -ESRCH;
++	}
++	
++	return 0;
++}
